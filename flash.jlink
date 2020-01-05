@@ -1,0 +1,8 @@
+si 1
+speed 4000
+device STM32F103T6
+erase
+loadfile bin/v1.openinput.hex
+r
+g
+exit
