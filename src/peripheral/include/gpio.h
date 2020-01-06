@@ -29,27 +29,6 @@
 #define IO_EXTI_PORTG       0x6
 #define IO_EXTI_CFG(i, p)   ((uint32_t)p << ((i & (uint32_t)3) * 4))
 
-// IO Location macros
-#define BAT_CHAR_DETECTED() !(GPIOB->IDR & BIT(9))
-#define BAT_CHARGED() !!(GPIOB->IDR & BIT(8))
-
-#define LED_ON() GPIOC->BSRR = BIT(13)
-#define LED_OFF() GPIOC->BSRR = BIT(13) << 16
-#define LED_TOGGLE() GPIOC->ODR ^= BIT(13)
-#define LED_STATUS() !!(GPIOC->IDR & BIT(13))
-#define LED_DUTY TIM3->CCR1
-
-#define RFM69_SELECT() GPIOA->BSRR = BIT(4) << 16
-#define RFM69_UNSELECT() GPIOA->BSRR = BIT(4)
-#define RFM69_RESET() GPIOB->BSRR = BIT(0)
-#define RFM69_UNRESET() GPIOB->BSRR = BIT(0) << 16
-
-#define SPI_FLASH_SELECT() GPIOA->BSRR = BIT(1) << 16
-#define SPI_FLASH_UNSELECT() GPIOA->BSRR = BIT(1)
-
-#define USB_DISCONNECT_CLEAR() GPIOA->BSRR = BIT(15) << 16
-#define USB_DISCONNECT_SET() GPIOA->BSRR = BIT(15)
-
 void gpio_init();
 
 #endif

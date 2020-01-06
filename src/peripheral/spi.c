@@ -22,7 +22,7 @@ uint8_t spi_transfer_byte(const uint8_t ubData)
 
     return (uint8_t)SPI1->DR;
 }
-void spi1_transfer(const uint8_t* pubSrc, uint32_t ulSize, uint8_t* pubDst)
+void spi_transfer(const uint8_t* pubSrc, uint32_t ulSize, uint8_t* pubDst)
 {
     if(pubSrc)
     {

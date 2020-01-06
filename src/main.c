@@ -59,7 +59,7 @@ void _nmi_isr()
 
     systick_init();
 
-//    spi1_init(0, SPI_CLOCK_DIV_2, SPI_MSB_FIRST);
+    spi_init(SPI_MODE3, SPI_CLOCK_DIV_64, SPI_MSB_FIRST);
 
     DBGPRINTLN_CTX("HSE Clock failed, switched to HSI!");
     DBGPRINTLN_CTX("RCC - System Clock: %.1f MHz!", (float)SYS_CLOCK_FREQ / 1000000);
@@ -69,9 +69,7 @@ void _nmi_isr()
     DBGPRINTLN_CTX("RCC - APB1 Timers Clock: %.1f MHz!", (float)APB1_TIM_CLOCK_FREQ / 1000000);
     DBGPRINTLN_CTX("RCC - APB2 Timers Clock: %.1f MHz!", (float)APB2_TIM_CLOCK_FREQ / 1000000);
     DBGPRINTLN_CTX("RCC - ADC Clock: %.1f MHz!", (float)ADC_CLOCK_FREQ / 1000000);
-    DBGPRINTLN_CTX("UART1 - Baud: %lu bps!", 500000);
-    DBGPRINTLN_CTX("SPI1 - Clock: %.1f MHz!", (float)APB2_CLOCK_FREQ / 1000000 / 2);
-    DBGPRINTLN_CTX("I2C2 - Clock: %lu kHz!", 100);
+    DBGPRINTLN_CTX("SPI - Clock: %.1f MHz!", (float)APB2_CLOCK_FREQ / 1000000 / 2);
 
     RCC->CIR |= RCC_CIR_CSSC;
 
@@ -87,16 +85,7 @@ void _exti0_isr()
     {
         EXTI->PR = EXTI_PR_PR0;
 
-//        rfm69_isr();
-    }
-}
-void _exti15_10_isr()
-{
-    if(EXTI->PR & EXTI_PR_PR12)
-    {
-        EXTI->PR = EXTI_PR_PR12;
-
-
+        DBGPRINTLN_CTX("Motion!...");
     }
 }
 
@@ -167,9 +156,9 @@ int init()
 
     gpio_init(); // Init GPIOs
 
-    leds_init();
+    spi_init(SPI_MODE3, SPI_CLOCK_DIV_64, SPI_MSB_FIRST);
 
-    spi_init(SPI_MODE0, SPI_CLOCK_DIV_2, SPI_MSB_FIRST);
+    leds_init();
 
 
     DBGPRINTLN_CTX("openinput v%lu (%s %s)!", BUILD_VERSION, __DATE__, __TIME__);
@@ -187,7 +176,7 @@ int init()
     DBGPRINTLN_CTX("RCC - APB1 Timers Clock: %.1f MHz!", (float)APB1_TIM_CLOCK_FREQ / 1000000);
     DBGPRINTLN_CTX("RCC - APB2 Timers Clock: %.1f MHz!", (float)APB2_TIM_CLOCK_FREQ / 1000000);
     DBGPRINTLN_CTX("RCC - ADC Clock: %.1f MHz!", (float)ADC_CLOCK_FREQ / 1000000);
-    DBGPRINTLN_CTX("SPI1 - Clock: %.1f MHz!", (float)APB2_CLOCK_FREQ / 1000000 / 2);
+    DBGPRINTLN_CTX("SPI - Clock: %.1f MHz!", (float)APB2_CLOCK_FREQ / 1000000 / 2);
 
     delay_ms(50);
 
@@ -195,9 +184,21 @@ int init()
 }
 int main()
 {
+    GPIOA->BSRR = BIT(4) << 16;
+
     for(;;)
     {
-		static color_t red = {.r = 255, .g = 0, .b = 0};
+        static uint64_t ullSPITick = 0;
+        if(g_ullSystemTick > (ullSPITick + 500))
+        {
+            spi_transfer_byte(0xAA);
+            spi_transfer_byte(0x55);
+            ullSPITick = g_ullSystemTick;
+        }
+    }
+    while (0)
+    {
+        static color_t red = {.r = 255, .g = 0, .b = 0};
 		static color_t green = {.r = 0, .g = 255, .b = 0};
 		static color_t blue = {.r = 0, .g = 0, .b = 255};
 		static color_t off = {.r = 0, .g = 0, .b = 0};
