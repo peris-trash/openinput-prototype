@@ -13,6 +13,7 @@
 #include "crc.h"
 #include "flash.h"
 #include "leds.h"
+#include "spi_eeprom.h"
 
 // Structs
 typedef struct
