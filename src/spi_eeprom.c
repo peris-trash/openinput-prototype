@@ -5,7 +5,7 @@ void spi_eeprom_read(uint16_t ulAddress, uint8_t *pubDst, uint32_t ulCount)
     if(!ulCount)
         return;
 
-    ulAddress &= SPI_EEPROM_MAX_ADDRESS;
+    SPI_EEPROM_UNSELECT();
 
     spi_eeprom_busy_wait();
 
@@ -27,7 +27,7 @@ void spi_eeprom_write(uint16_t ulAddress, const uint8_t *pubSrc, uint32_t ulCoun
     if(!ulCount)
         return;
 
-    ulAddress &= SPI_EEPROM_MAX_ADDRESS;
+    SPI_EEPROM_UNSELECT();
 
     spi_eeprom_busy_wait();
     spi_eeprom_write_enable();
@@ -40,9 +40,7 @@ void spi_eeprom_write(uint16_t ulAddress, const uint8_t *pubSrc, uint32_t ulCoun
         spi_transfer_byte((ulAddress >> 8) & 0xFF);
         spi_transfer_byte(ulAddress & 0xFF);
 
-
-        while(ulCount--)
-            spi_transfer_byte(*pubSrc++);
+        spi_write(pubSrc, ulCount);
 
         SPI_EEPROM_UNSELECT();
     }
@@ -50,11 +48,13 @@ void spi_eeprom_write(uint16_t ulAddress, const uint8_t *pubSrc, uint32_t ulCoun
 
 void spi_eeprom_busy_wait()
 {
-    while(spi_eeprom_read_status() & SPI_EEPROM_STATUS_WIP)
-        delay_ms(1);
+    while(spi_eeprom_read_status() & SPI_EEPROM_STATUS_WIP);
+//        delay_ms(1);
 }
 void spi_eeprom_write_enable()
 {
+    SPI_EEPROM_UNSELECT();
+
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
     {
         SPI_EEPROM_SELECT();
@@ -66,6 +66,8 @@ void spi_eeprom_write_enable()
 }
 void spi_eeprom_write_disable()
 {
+    SPI_EEPROM_UNSELECT();
+
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
     {
         SPI_EEPROM_SELECT();
@@ -78,6 +80,8 @@ void spi_eeprom_write_disable()
 uint8_t spi_eeprom_read_status()
 {
     uint8_t ubBuf[] = {SPI_EEPROM_CMD_READ_STATUS, 0x00};
+
+    SPI_EEPROM_UNSELECT();
 
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
     {

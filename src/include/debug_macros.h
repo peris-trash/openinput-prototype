@@ -3,7 +3,9 @@
 
 #include "printf.h"
 
-#ifdef DBGPRINT
+#define DBGPRINTEN
+
+#ifdef DBGPRINTEN
 #define DBGPRINTLN_CTX(FORMAT, ...)  printf("[%s] - " FORMAT "\r\n", __FUNCTION__, ##__VA_ARGS__)
 #define DBGPRINT_CTX(FORMAT, ...)  printf("[%s] - " FORMAT, __FUNCTION__, ##__VA_ARGS__)
 #define DBGPRINTLN(FORMAT, ...) printf(FORMAT "\r\n", ##__VA_ARGS__)

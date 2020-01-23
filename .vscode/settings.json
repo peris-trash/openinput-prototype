@@ -1,6 +1,8 @@
 {
     "files.associations": {
         "spi.h": "c",
-        "gpio.h": "c"
+        "gpio.h": "c",
+        "rcc.h": "c",
+        "spi_eeprom.h": "c"
     }
 }

@@ -43,10 +43,9 @@
 
 #define SPI_EEPROM_MAX_ADDRESS       (SPI_EEPROM_SIZE - 1)
 
-void spi_eeprom_read(uint32_t ulAddress, uint8_t *pubDst, uint32_t ulCount);
-void spi_eeprom_write(uint32_t ulAddress, const uint8_t *pubSrc, uint32_t ulCount);
-void spi_eeprom_modify(uint32_t ulAddress, const uint8_t *pubSrc, uint32_t ulCount);
-inline uint8_t spi_eeprom_read_byte(uint32_t ulAddress)
+void spi_eeprom_read(uint16_t ulAddress, uint8_t *pubDst, uint32_t ulCount);
+void spi_eeprom_write(uint16_t ulAddress, const uint8_t *pubSrc, uint32_t ulCount);
+inline uint8_t spi_eeprom_read_byte(uint16_t ulAddress)
 {
     uint8_t ubData = 0xFF;
 
@@ -54,16 +53,14 @@ inline uint8_t spi_eeprom_read_byte(uint32_t ulAddress)
 
     return ubData;
 }
-inline void spi_eeprom_write_byte(uint32_t ulAddress, uint8_t ubData)
+inline void spi_eeprom_write_byte(uint16_t ulAddress, uint8_t ubData)
 {
     spi_eeprom_write(ulAddress, &ubData, 1);
-}
-inline void spi_eeprom_modify_byte(uint32_t ulAddress, uint8_t ubData)
-{
-    spi_eeprom_modify(ulAddress, &ubData, 1);
 }
 
 void spi_eeprom_busy_wait();
 void spi_eeprom_write_enable();
 void spi_eeprom_write_disable();
 uint8_t spi_eeprom_read_status();
+
+#endif // __SPI_EEPROM_H__

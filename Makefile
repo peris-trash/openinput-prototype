@@ -2,7 +2,7 @@
 DEVICEDIR = /opt/cmsis/cmsis-dfp-stm32f1xx/Device/Include/
 COREDIR = /opt/cmsis/cmsis-core/CMSIS/Include
 MCU_TYPE = STM32F10X_LD
-HSE_CLOCK_FREQ = 8000000UL
+HSE_CLOCK_FREQ = 12000000UL
 APP_ADDRESS = 0x08000000
 APP_NAME = openinput
 

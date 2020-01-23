@@ -86,7 +86,7 @@ void _exti0_isr()
     {
         EXTI->PR = EXTI_PR_PR0;
 
-        DBGPRINTLN_CTX("Motion!...");
+        //DBGPRINTLN_CTX("Motion!...");
     }
 }
 
@@ -153,6 +153,8 @@ int init()
     rcc_init(); // Switch to HSE/PLL
     rcc_update_clocks(); // Update clock values
 
+    dbg_swo_config(BIT(0), 6000000); // Init Debug module // Init SWO channels 0 at 1 MHz
+
     systick_init(); // Init system tick
 
     gpio_init(); // Init GPIOs
@@ -176,8 +178,7 @@ int init()
     DBGPRINTLN_CTX("RCC - APB2 Clock: %.1f MHz!", (float)APB2_CLOCK_FREQ / 1000000);
     DBGPRINTLN_CTX("RCC - APB1 Timers Clock: %.1f MHz!", (float)APB1_TIM_CLOCK_FREQ / 1000000);
     DBGPRINTLN_CTX("RCC - APB2 Timers Clock: %.1f MHz!", (float)APB2_TIM_CLOCK_FREQ / 1000000);
-    DBGPRINTLN_CTX("RCC - ADC Clock: %.1f MHz!", (float)ADC_CLOCK_FREQ / 1000000);
-    DBGPRINTLN_CTX("SPI - Clock: %.1f MHz!", (float)APB2_CLOCK_FREQ / 1000000 / 2);
+    DBGPRINTLN_CTX("SPI - Clock: %.1f MHz!", (float)APB2_CLOCK_FREQ / 1000000 / 64);
 
     delay_ms(50);
 
@@ -185,19 +186,28 @@ int init()
 }
 int main()
 {
-    GPIOA->BSRR = BIT(4) << 16;
-
-    for(;;)
+    #ifdef DUMPEEPROM
+    do
     {
-        static uint64_t ullSPITick = 0;
-        if(g_ullSystemTick > (ullSPITick + 500))
+        DBGPRINTLN_CTX("Dumping eeprom contents...");
+        DBGPRINTLN("[address : value]");
+        uint16_t eepromaddr = 0x0000;
+        uint8_t contents[128] = {};
+        for(uint16_t p = 0; p < 512; p++)
         {
-            spi_transfer_byte(0xAA);
-            spi_transfer_byte(0x55);
-            ullSPITick = g_ullSystemTick;
+            spi_eeprom_read(eepromaddr, contents, 128);
+            for(uint8_t i = 0; i < 128; i++)
+            {
+                DBGPRINTLN("0x%04X, 0x%02X", eepromaddr++, contents[i]);
+            }
+            delay_ms(50);
         }
+        DBGPRINTLN_CTX("Dumping complete...");
     }
-    while (0)
+    while(0);
+    #endif
+
+    while(1)
     {
         static color_t red = {.r = 255, .g = 0, .b = 0};
 		static color_t green = {.r = 0, .g = 255, .b = 0};

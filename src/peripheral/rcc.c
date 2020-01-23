@@ -18,10 +18,12 @@ void rcc_init()
 
     RCC->CFGR |= RCC_CFGR_HPRE_DIV1; // AHB Clock = Sys Clock
     RCC->CFGR |= RCC_CFGR_PPRE2_DIV1; // APB2 Clock = Sys Clock
-    RCC->CFGR |= RCC_CFGR_PPRE1_DIV2; // APB1 Clock = Sys Clock
+    RCC->CFGR |= RCC_CFGR_PPRE1_DIV1; // APB1 Clock = Sys Clock
 
+    RCC->CFGR &= ~RCC_CFGR_USBPRE; // USB prescaler = PLL clock is divided by 1.5 -> 72 MHz / 1.5 = 48MHz
+ 
     RCC->CFGR &= ~RCC_CFGR_PLLXTPRE;
-    RCC->CFGR = (RCC->CFGR & ~(RCC_CFGR_PLLSRC | RCC_CFGR_PLLMULL)) | RCC_CFGR_PLLSRC_HSE | RCC_CFGR_PLLMULL9; // PLLCLK = HSE(8) * 9 = 72 MHz
+    RCC->CFGR = (RCC->CFGR & ~(RCC_CFGR_PLLSRC | RCC_CFGR_PLLMULL)) | RCC_CFGR_PLLSRC_HSE | RCC_CFGR_PLLMULL6; // PLLCLK = HSE(12) * 6 = 72 MHz
 
     RCC->CR |= RCC_CR_PLLON; // Enable PLL
 
@@ -142,12 +144,12 @@ void rcc_update_clocks()
     if((RCC->CFGR & RCC_CFGR_PPRE1) == RCC_CFGR_PPRE1_DIV1)
         APB1_TIM_CLOCK_FREQ = APB1_CLOCK_FREQ;
     else
-        APB1_TIM_CLOCK_FREQ = APB1_CLOCK_FREQ << 1;
+        APB1_TIM_CLOCK_FREQ = APB1_CLOCK_FREQ >> 1;
 
     if((RCC->CFGR & RCC_CFGR_PPRE2) == RCC_CFGR_PPRE2_DIV1)
         APB2_TIM_CLOCK_FREQ = APB2_CLOCK_FREQ;
     else
-        APB2_TIM_CLOCK_FREQ = APB2_CLOCK_FREQ << 1;
+        APB2_TIM_CLOCK_FREQ = APB2_CLOCK_FREQ >> 1;
 
     switch(RCC->CFGR & RCC_CFGR_ADCPRE)
     {
