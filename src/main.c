@@ -14,6 +14,7 @@
 #include "flash.h"
 #include "leds.h"
 #include "spi_eeprom.h"
+#include "truemove3.h"
 
 // Structs
 typedef struct
@@ -182,6 +183,24 @@ int init()
 
     delay_ms(50);
 
+    uint8_t truemove3Firmware[4094];
+    uint8_t* ptr = truemove3Firmware;
+    for(uint8_t b = 0; b < 4094; b += 128)
+    {
+        spi_eeprom_read(0x6100 + b, truemove3Firmware + b, 128);
+    }
+
+    uint8_t sromId = truemove3_init(truemove3Firmware);
+    if(sromId)
+    {
+        DBGPRINTLN_CTX("TRUEMOVE3 initialized with srom ver:0x%02X!", sromId);
+    }
+    else
+    {
+        DBGPRINTLN_CTX("TRUEMOVE3 Failed initialization!");
+        while(1);
+    }
+
     return 0;
 }
 int main()
@@ -209,42 +228,12 @@ int main()
 
     while(1)
     {
-        static color_t red = {.r = 255, .g = 0, .b = 0};
-		static color_t green = {.r = 0, .g = 255, .b = 0};
-		static color_t blue = {.r = 0, .g = 0, .b = 255};
-		static color_t off = {.r = 0, .g = 0, .b = 0};
-
-		leds_set(0, 0, 0, red);
-		leds_set(1, 0, 0, green);
-		for (uint8_t i = 0; i < 255; i++)
-		{
-			for (int ii = 0; ii < 128000; ii++) __asm__("nop");
-			leds_task();
-		}
-
-		leds_set(0, 0, 0, green);
-		leds_set(1, 0, 0, blue);
-		for (uint8_t i = 0; i < 255; i++)
-		{
-			for (int ii = 0; ii < 128000; ii++) __asm__("nop");
-			leds_task();
-		}
-
-		leds_set(0, 0, 0, blue);
-		leds_set(1, 0, 0, red);
-		for (uint8_t i = 0; i < 255; i++)
-		{
-			for (int ii = 0; ii < 128000; ii++) __asm__("nop");
-			leds_task();
-		}
-
-		leds_set(0, 0, 0, off);
-		leds_set(1, 0, 0, off);
-		for (uint8_t i = 0; i < 255; i++)
-		{
-			for (int ii = 0; ii < 128000; ii++) __asm__("nop");
-			leds_task();
-		}
+		static uint64_t lastDeltaPrint = 0;
+        if(g_ullSystemTick > (lastDeltaPrint + 1000))
+        {
+            delta_xy_t deltas = truemove3_get_deltas();
+            DBGPRINTLN("delta X:%d Delta Y:%d", deltas.x, deltas.y);
+        }
     }
 
     return 0;

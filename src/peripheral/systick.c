@@ -16,9 +16,9 @@ void systick_init()
     SCB->SHP[11] = 15 << (8 - __NVIC_PRIO_BITS); // Set priority 7,1 (min)
 
     // delay us initialization
-    CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+    CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk; // Enable TRC
     DWT->CYCCNT = 0;
-    DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+    DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;    // Enable  clock cycle counter
 }
 void delay_ms(uint32_t ullTicks)
 {
@@ -26,7 +26,7 @@ void delay_ms(uint32_t ullTicks)
     {
         uint64_t ullStartTick = g_ullSystemTick;
 
-        while(g_ullSystemTick - ullStartTick < ullTicks);
+        while((g_ullSystemTick - ullStartTick) < ullTicks);
     }
 }
 void delay_us(uint32_t ullTicks)
