@@ -8,7 +8,7 @@
 extern volatile uint64_t g_ullSystemTick;
 
 void systick_init();
-void delay_ms(uint64_t ullTicks);
-void delay_us(uint64_t ullTicks);
+void delay_ms(uint32_t ullTicks);
+void delay_us(uint32_t ullTicks);
 
 #endif
