@@ -24,6 +24,7 @@ void gpio_init()
     GPIOA->CRL = IO_MODE_CFG(0,  IO_MODE_OUT_10M, IO_CFG_OUT_AF_PP) |
                  IO_MODE_CFG(1,  IO_MODE_OUT_10M, IO_CFG_OUT_AF_PP) |
                  IO_MODE_CFG(2,  IO_MODE_OUT_10M, IO_CFG_OUT_AF_PP) |
+                 IO_MODE_CFG(3,  IO_MODE_IN,      IO_CFG_IN_PULL)   |
                  IO_MODE_CFG(4,  IO_MODE_OUT_10M, IO_CFG_OUT_GP_PP) |
                  IO_MODE_CFG(5,  IO_MODE_OUT_50M, IO_CFG_OUT_AF_PP) |
                  IO_MODE_CFG(6,  IO_MODE_IN,      IO_CFG_IN_FLOAT)  |
@@ -85,14 +86,14 @@ void gpio_init()
     AFIO->EXTICR[2] = 0;
     AFIO->EXTICR[3] = 0;
 
-    // EXTI 0 - Motion in
-    EXTI->IMR |= EXTI_IMR_MR0; // Enable interrupt
-    EXTI->EMR |= EXTI_EMR_MR0; // Enable event
-    EXTI->RTSR |= EXTI_FTSR_TR0; // Enable falling trigger
-    EXTI->FTSR &= ~EXTI_RTSR_TR0; // Disable rising trigger
-    IRQ_SET_PRIO(EXTI0_IRQn, 1, 0);
-    IRQ_CLEAR(EXTI0_IRQn);
-    IRQ_ENABLE(EXTI0_IRQn);
+    // EXTI 3 - Motion in
+    EXTI->IMR |= EXTI_IMR_MR3; // Enable interrupt
+    EXTI->EMR |= EXTI_EMR_MR3; // Enable event
+    EXTI->FTSR |= EXTI_FTSR_TR3; // Enable falling trigger
+    EXTI->RTSR &= ~EXTI_RTSR_TR3; // Disable rising trigger
+    IRQ_SET_PRIO(EXTI3_IRQn, 1, 0);
+    IRQ_CLEAR(EXTI3_IRQn);
+    IRQ_ENABLE(EXTI3_IRQn);
 
     // Remapping
     AFIO->MAPR = AFIO_MAPR_SWJ_CFG_JTAGDISABLE | AFIO_MAPR_TIM3_REMAP_PARTIALREMAP; // Disable JTAG and remap TIM3

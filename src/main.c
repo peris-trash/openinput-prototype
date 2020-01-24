@@ -26,7 +26,7 @@ typedef struct
 } system_unique_id_t;
 
 // Internal Flash Addresses
-#define FLASH_APP_ADDRESS           (FLASH_BASE + 0x8000)
+#define FLASH_APP_ADDRESS       (FLASH_BASE + 0x8000)
 
 // Forward declarations
 static void reset() __attribute__((noreturn));
@@ -36,20 +36,6 @@ static uint32_t get_free_ram();
 
 // Variables
 extern system_unique_id_t _system_unique_id;
-
-const uint8_t ubLights[360] = { // sine fade technique to cycle rgb led
-  0, 0, 0, 0, 0, 1, 1, 2, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 15, 17, 18, 20, 22, 24, 26, 28, 30, 32, 35, 37, 39,
- 42, 44, 47, 49, 52, 55, 58, 60, 63, 66, 69, 72, 75, 78, 81, 85, 88, 91, 94, 97, 101, 104, 107, 111, 114, 117, 121, 124, 127, 131, 134, 137,
-141, 144, 147, 150, 154, 157, 160, 163, 167, 170, 173, 176, 179, 182, 185, 188, 191, 194, 197, 200, 202, 205, 208, 210, 213, 215, 217, 220, 222, 224, 226, 229,
-231, 232, 234, 236, 238, 239, 241, 242, 244, 245, 246, 248, 249, 250, 251, 251, 252, 253, 253, 254, 254, 255, 255, 255, 255, 255, 255, 255, 254, 254, 253, 253,
-252, 251, 251, 250, 249, 248, 246, 245, 244, 242, 241, 239, 238, 236, 234, 232, 231, 229, 226, 224, 222, 220, 217, 215, 213, 210, 208, 205, 202, 200, 197, 194,
-191, 188, 185, 182, 179, 176, 173, 170, 167, 163, 160, 157, 154, 150, 147, 144, 141, 137, 134, 131, 127, 124, 121, 117, 114, 111, 107, 104, 101, 97, 94, 91,
- 88, 85, 81, 78, 75, 72, 69, 66, 63, 60, 58, 55, 52, 49, 47, 44, 42, 39, 37, 35, 32, 30, 28, 26, 24, 22, 20, 18, 17, 15, 13, 12,
- 11, 9, 8, 7, 6, 5, 4, 3, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-
 
 // ISRs
 void _nmi_isr()
@@ -81,13 +67,13 @@ void _nmi_isr()
 
     reset();
 }
-void _exti0_isr()
+void _exti3_isr()
 {
-    if(EXTI->PR & EXTI_PR_PR0)
+    if(EXTI->PR & EXTI_PR_PR3)
     {
-        EXTI->PR = EXTI_PR_PR0;
+        EXTI->PR = EXTI_PR_PR3;
 
-        //DBGPRINTLN_CTX("Motion!...");
+        truemove3_motion_event();
     }
 }
 
@@ -162,8 +148,6 @@ int init()
 
     spi_init(SPI_MODE3, SPI_CLOCK_DIV_64, SPI_MSB_FIRST);
 
-    leds_init();
-
 
     DBGPRINTLN_CTX("openinput v%lu (%s %s)!", BUILD_VERSION, __DATE__, __TIME__);
     DBGPRINTLN_CTX("Interfaces init OK!");
@@ -183,14 +167,14 @@ int init()
 
     delay_ms(50);
 
-    uint8_t truemove3Firmware[4094];
-    uint8_t* ptr = truemove3Firmware;
-    for(uint8_t b = 0; b < 4094; b += 128)
+    uint8_t* truemove3Firmware = malloc(4094);
+    for(uint16_t b = 0; b < 4094; b += 128)
     {
         spi_eeprom_read(0x6100 + b, truemove3Firmware + b, 128);
     }
 
     uint8_t sromId = truemove3_init(truemove3Firmware);
+    free(truemove3Firmware);
     if(sromId)
     {
         DBGPRINTLN_CTX("TRUEMOVE3 initialized with srom ver:0x%02X!", sromId);
@@ -200,6 +184,8 @@ int init()
         DBGPRINTLN_CTX("TRUEMOVE3 Failed initialization!");
         while(1);
     }
+
+    leds_init();
 
     return 0;
 }
@@ -233,6 +219,7 @@ int main()
         {
             delta_xy_t deltas = truemove3_get_deltas();
             DBGPRINTLN("delta X:%d Delta Y:%d", deltas.x, deltas.y);
+            lastDeltaPrint = g_ullSystemTick;
         }
     }
 

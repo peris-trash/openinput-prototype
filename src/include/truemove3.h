@@ -4,6 +4,7 @@
 #include <stm32f10x.h>
 #include <stdlib.h>
 #include "utils.h"
+#include "nvic.h"
 #include "systick.h"
 #include "spi.h"
 

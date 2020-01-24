@@ -34,6 +34,7 @@ void truemove3_write(uint8_t address, uint8_t value)
         TRUEMOVE3_SELECT();
 
         spi_transfer_byte((address & 0x7F) | 0x80); // 7 bit address + write bit(1)
+        delay_us(120); // Tsrad
         spi_transfer_byte(value);
 
         TRUEMOVE3_UNSELECT();
@@ -70,8 +71,13 @@ motion_burst_t truemove3_read_motion_burst()
 
 uint8_t truemove3_init(uint8_t* firmware)
 {
+    IRQ_DISABLE(EXTI3_IRQn);
+
     if(!firmware)
         return 0;
+
+    TRUEMOVE3_UNSELECT();
+    delay_ms(1);
 
     // software reset
     truemove3_write(TRUEMOVE3_REG_PWR_UP_RST, TRUEMOVE3_RESET_CMD);
@@ -108,17 +114,17 @@ uint8_t truemove3_init(uint8_t* firmware)
 
         TRUEMOVE3_UNSELECT();
     }
-    delay_us(200); // Tbexit
+    delay_ms(2); // Tbexit
 
     uint8_t sromId = truemove3_read(TRUEMOVE3_REG_SROM_ID); // read srom firmware id
 
     if(!sromId)
         return 0;
 
-    truemove3_write(TRUEMOVE3_REG_SROM_ID, TRUEMOVE3_SROM_CRC_CMD); // initialize CRC check
+    truemove3_write(TRUEMOVE3_REG_SROM_EN, TRUEMOVE3_SROM_CRC_CMD); // initialize CRC check
     delay_ms(15);
 
-    uint16_t sromCrc = 0;
+    volatile uint16_t sromCrc = 0;
 
     sromCrc |= (truemove3_read(TRUEMOVE3_REG_DOUT_H) << 8);
     sromCrc |= truemove3_read(TRUEMOVE3_REG_DOUT_L);
@@ -139,7 +145,11 @@ uint8_t truemove3_init(uint8_t* firmware)
 
     truemove3_write(TRUEMOVE3_REG_OBSERVATION, 0x00); // clear observation register
 
+    truemove3_write(TRUEMOVE3_REG_CONFIG1, 0x01);
+
     truemove3_read_motion_burst();
+
+    IRQ_ENABLE(EXTI3_IRQn);
 
     return sromId;
 }
